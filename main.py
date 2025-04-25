@@ -1,4 +1,4 @@
 import backend.utils
-import backend.utils.assistant
+import assistant
 
-backend.utils.assistant.chat_with_kg()
+assistant.chat_with_kg()
