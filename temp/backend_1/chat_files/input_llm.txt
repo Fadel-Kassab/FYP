@@ -1,1 +1,0 @@
-How many patients do we have in the database?

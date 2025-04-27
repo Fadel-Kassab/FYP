@@ -8,7 +8,7 @@ from neo4j import GraphDatabase, basic_auth
 from datetime import datetime
 import warnings
 import gradio as gr 
-from utils import send_to_neo4j, chat_with_kg
+from backend.utils import send_to_neo4j, chat_with_kg
 from pyvis.network import Network
 import tempfile
 import html as _html  # stdlib helper
