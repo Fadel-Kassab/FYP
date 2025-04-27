@@ -167,12 +167,9 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo: # Added a theme
                 title="Chat with Hospital Knowledge Graph",
                 description="Ask questions about the patient data stored in the Neo4j knowledge graph.",
                 examples=[ # Examples specific to the chat function
-                    "What conditions does Johnathan Doe have?",
-                    "Which patients take Metformin?",
-                    "What is the dosage for Lisinopril for patient HOS12345678?",
-                    "Does patient HOS98765432 have any allergies?",
-                    "What was the reaction for Jane Smith's Sulfa allergy?",
-                    "List all procedures for patient HOS12345678",
+                    "Can you list the names of the patients in the database?",
+                    "What is the condition of Johnathan Smith?",
+                    "Are there patients that share the same condition(s)?",
                 ],
                  chatbot=gr.Chatbot(height=550), # Adjust height if needed
                  # submit_btn="Ask KG", # Customize button text (optional)
@@ -211,6 +208,6 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo: # Added a theme
 # Launch the Gradio app
 if __name__ == "__main__":
     print("Launching Gradio application...")
-    # share=True creates a public link - use carefully!
+    share=True 
     # debug=True provides more verbose Gradio console output
     demo.launch()
