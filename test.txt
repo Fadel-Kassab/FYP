@@ -1,1 +1,62 @@
-Marie Dubois (DOB August 30, 1965) came to Cardiology on April 23, 2025 complaining of intermittent chest discomfort over the last month. She lives at 15 Corniche Road, Jounieh. Past history includes stable coronary artery disease since February 2018, for which she takes Aspirin 81 mg once daily. She has an allergy to latex causing contact dermatitis. On April 23 her blood pressure was 132/78 mmHg, heart rate 76 bpm, respiratory rate 16, temperature 36.8 °C, and a resting ECG was normal. She denies shortness of breath or palpitations.
+Patient Name: Maria Gonzalez  ID: HOS12345678  DOB: 02/14/1976
+
+Chief Complaint:
+Patient presents with intermittent chest tightness x2 days, worse on exertion, relieved by rest.
+
+History of Present Illness
+– The pain started 2 days ago while walking her dog. She describes it as “squeezing,” 5/10.
+– No shortness of breath at rest; mild SOB when climbing stairs.
+– Denies nausea, vomiting, palpitations.
+
+Past Medical History:
+   • Hypertension since 2010
+   • Type II Diabetes mellitus dx 2015 a1c ≈ 8.2%
+   • GERD (on omeprazole)
+
+Current Medications
+   * Lisinopril 20 mg once daily
+   * Metformin 500 mg BID
+   * Omeprazole 20 mg QAM
+   * ASA 81 mg daily
+
+Allergies
+   – Penicillin: causes rash and itching
+   – NKDA otherwise
+
+Family History: father died age 64 of MI; mother alive 78, HTN.
+
+Social History:
+smokes 1/2 pack per day since age 20; drinks wine socially on weekends; lives with husband; no illicit drug use.
+
+Review of Systems (positive/negative):
+Cardiac: +chest tightness, −palpitations  
+Respiratory: −cough, −wheezing  
+GI: +heartburn, −abdominal pain  
+Neuro: −dizziness, −syncope
+
+Physical Exam:
+Vital signs: BP 145/90 mmHg, HR 88 bpm, RR 18, T 98.6 °F, SpO2 97% RA  
+General: NAD, alert & oriented x3  
+HEENT: PERRL, EOMI  
+CV: RRR, no m/r/g  
+Lungs: CTA bilat, no rales or wheezes  
+Abdomen: soft, NTND, +BS  
+Extremities: no edema  
+
+Labs (from today’s draw):
+WBC 7.8 K/uL, Hgb 13.5 g/dL, Plt 220 K/uL  
+Na 138 mmol/L, K 4.2 mmol/L, Cr 0.9 mg/dL  
+Glucose 160 mg/dL, A1c last month 8.2%  
+Troponin I < 0.01 ng/mL  
+
+ECG: normal sinus rhythm, no ST changes
+
+Assessment & Plan:
+1. Rule out acute coronary syndrome: obtain serial troponins q6h ×3, consider stress test if all negative  
+2. Continue home meds; hold metformin prior to any imaging requiring contrast  
+3. Start low-dose beta-blocker (metoprolol 25 mg BID)  
+4. Dietary counseling for DM, smoking cessation referral  
+5. Follow up in clinic in 1 week or sooner if pain worsens
+
+Signed: Dr. Aisha Karim, MD
+Date: 04/27/2025
