@@ -9,8 +9,21 @@ from neo4j import GraphDatabase, basic_auth
 from datetime import datetime
 import warnings 
 
-load_dotenv()
+import os
+import sys
 
+print("--- Render Env Check ---")
+print(f"OPENAI_API_KEY Set: {bool(os.getenv('OPENAI_API_KEY'))}")
+print(f"NEO4J_URI: {os.getenv('NEO4J_URI')}")
+print(f"NEO4J_USERNAME: {os.getenv('NEO4J_USERNAME')}")
+print(f"NEO4J_PASSWORD Set: {bool(os.getenv('NEO4J_PASSWORD'))}")
+print(f"NEO4J_DATABASE: {os.getenv('NEO4J_DATABASE')}")
+print(f"PORT: {os.getenv('PORT', 'Not Set (using default)')}")
+print(f"PYTHON_VERSION (reported by system): {sys.version}")
+print("--- End Render Env Check ---")
+
+# Rest of your imports and code...
+# client = OpenAI(...) etc.
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 NEO4J_URI      = os.getenv("NEO4J_URI")
 NEO4J_USERNAME = os.getenv("NEO4J_USERNAME")
