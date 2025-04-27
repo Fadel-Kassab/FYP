@@ -8,7 +8,7 @@ from neo4j import GraphDatabase, basic_auth
 from datetime import datetime
 import warnings
 import gradio as gr 
-from backend.utils import send_to_neo4j, chat_with_kg
+from utils import send_to_neo4j, chat_with_kg
 from pyvis.network import Network
 import tempfile
 import html as _html  # stdlib helper
@@ -16,21 +16,23 @@ import html as _html
 import tempfile
 from pyvis.network import Network
 from neo4j import GraphDatabase, basic_auth
+from dotenv import load_dotenv, find_dotenv
+import os
+from openai import OpenAI
+# this reads .env into os.environ
+load_dotenv()
+import os
+key = os.getenv("OPENAI_API_KEY")
+print("OPENAI_API_KEY:", repr(key))   # None if not set, or '' if empty
 
-# --- Configuration (Same as before) ---
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+NEO4J_URI      = os.getenv("NEO4J_URI")
+NEO4J_USERNAME = os.getenv("NEO4J_USERNAME")
+NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
+NEO4J_DATABASE = os.getenv("NEO4J_DATABASE")
 
-# OpenAI Configuration
-try:
-    client = OpenAI(api_key="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")
-except Exception as e:
-    print(f"CRITICAL Error initializing OpenAI client: {e}. Check API key.")
-    client = None
+# … rest of your setup …
 
-# Neo4j Configuration
-NEO4J_URI        = "neo4j+s://c703fa4d.databases.neo4j.io"
-NEO4J_USERNAME   = "neo4j"
-NEO4J_PASSWORD   = "JuhfBiYU-pgzF9CpGVhg5AhpkdHWtMPOCWnwpZxX09o"
-NEO4J_DATABASE = "neo4j"
 # --- Gradio Interface Functions ---
 
 def chat_interface_fn(message, history):
@@ -205,9 +207,12 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo: # Added a theme
                 inputs=[],
                 outputs=[graph_html]
             )
+            
+            
+app = demo.app
 # Launch the Gradio app
 if __name__ == "__main__":
     print("Launching Gradio application...")
-    share=True 
+    # share=True 
     # debug=True provides more verbose Gradio console output
     demo.launch()

@@ -2,16 +2,20 @@ import os
 import json
 import uuid
 import sys 
+from dotenv import load_dotenv
 import openai
+from openai import OpenAI
 from neo4j import GraphDatabase, basic_auth 
 from datetime import datetime
 import warnings 
 
-openai.api_key   = "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"
-NEO4J_URI        = "neo4j+s://c703fa4d.databases.neo4j.io"
-NEO4J_USERNAME   = "neo4j"
-NEO4J_PASSWORD   = "JuhfBiYU-pgzF9CpGVhg5AhpkdHWtMPOCWnwpZxX09o"
-NEO4J_DATABASE = "neo4j"
+load_dotenv()
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+NEO4J_URI      = os.getenv("NEO4J_URI")
+NEO4J_USERNAME = os.getenv("NEO4J_USERNAME")
+NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
+NEO4J_DATABASE = os.getenv("NEO4J_DATABASE")
 
 def extract_medical_data_from_text(text_prompt: str) -> dict | None:
     """
@@ -48,7 +52,7 @@ Medical Record Text:
 JSON Output:
 """
     try:
-        response = openai.chat.completions.create(
+        response = client.chat.completions.create(
             model="gpt-4o-mini", 
             messages=[
                 {"role": "system", "content": system_prompt},
@@ -361,7 +365,7 @@ You are an expert translator of natural language questions into Neo4j Cypher que
     user_message = f"Generate a Cypher query for the following question, carefully following ALL instructions above: {prompt}"
 
     try:
-        response = openai.chat.completions.create(
+        response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": system_prompt},
@@ -459,7 +463,7 @@ Retrieved Data from Knowledge Graph:
 Now, generate a response following ALL instructions above.
 """
     try:
-        response = openai.chat.completions.create(
+        response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": system_prompt},
