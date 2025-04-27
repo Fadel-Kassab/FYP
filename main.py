@@ -171,13 +171,13 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo: # Added a theme
                     "What is the condition of Johnathan Smith?",
                     "Are there patients that share the same condition(s)?",
                 ],
-                 chatbot=gr.Chatbot(height=550), # Adjust height if needed
+                 chatbot=gr.Chatbot(height=450), # Adjust height if needed
                  # submit_btn="Ask KG", # Customize button text (optional)
                  # retry_btn="Retry", # Customize button text (optional)
                  # undo_btn="Undo", # Customize button text (optional)
                  # clear_btn="Clear Chat" # Customize button text (optional)
             )
-            gr.Markdown("Enter your question about patients, conditions, medications, etc., based on the data previously uploaded. The system will query the graph and generate a response.")
+            # gr.Markdown("Enter your question about patients, conditions, medications, etc., based on the data previously uploaded. The system will query the graph and generate a response.")
             
         # --- UPLOAD TAB ---
         with gr.TabItem("Upload Record"):
