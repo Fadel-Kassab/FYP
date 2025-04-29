@@ -9,9 +9,6 @@ from neo4j import GraphDatabase, basic_auth
 from datetime import datetime
 import warnings 
 
-import os
-import sys
-
 print("--- Render Env Check ---")
 print(f"OPENAI_API_KEY Set: {bool(os.getenv('OPENAI_API_KEY'))}")
 print(f"NEO4J_URI: {os.getenv('NEO4J_URI')}")
@@ -22,8 +19,6 @@ print(f"PORT: {os.getenv('PORT', 'Not Set (using default)')}")
 print(f"PYTHON_VERSION (reported by system): {sys.version}")
 print("--- End Render Env Check ---")
 
-# Rest of your imports and code...
-# client = OpenAI(...) etc.
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 NEO4J_URI      = os.getenv("NEO4J_URI")
 NEO4J_USERNAME = os.getenv("NEO4J_USERNAME")
@@ -133,84 +128,58 @@ def generate_cypher_query(extracted_data: dict) -> tuple[str, dict] | None:
 
     patient_props = {k: v for k, v in patient_info.items() if k != "extractedId" and v is not None}
     if id_property == "patientId":
-        patient_props['patientId'] = patient_id # Ensure generated UUID is in the props to be set
+        patient_props['patientId'] = patient_id
 
-    # Add patient props to parameters
     params['patient_props'] = patient_props
 
-    # Set properties on create/match
     cypher_parts.append("ON CREATE SET p = $patient_props, p.createdAt = timestamp()")
     cypher_parts.append("ON MATCH SET p += $patient_props, p.lastUpdatedAt = timestamp()")
 
-    # Helper function to create MERGE clauses for related nodes and relationships
     def add_related_nodes(data_list, node_label, rel_type, node_key_prop, rel_props_keys):
         """Generates Cypher clauses for related nodes and relationships."""
         if not isinstance(data_list, list) or not data_list:
-            return # Skip if data is not a non-empty list
+            return
 
         list_param_name = f"{node_label.lower()}_list"
 
-        # Filter out invalid items (not dicts or missing the key property)
         valid_items = [item for item in data_list if isinstance(item, dict) and node_key_prop in item and item[node_key_prop]]
         if not valid_items:
             # print(f"Debug: No valid items found for {node_label} to process.")
-            return # Skip if no valid items
+            return 
 
-        params[list_param_name] = valid_items # Add only valid items to params
+        params[list_param_name] = valid_items
 
-        cypher_parts.append(f"WITH p") # Ensure 'p' is carried forward
+        cypher_parts.append(f"WITH p") 
         cypher_parts.append(f"UNWIND ${list_param_name} AS item")
-        # Merge the related node based on its key property (e.g., name, allergen)
         cypher_parts.append(f"MERGE (n:{node_label} {{{node_key_prop}: item.{node_key_prop}}})")
 
-        # Build relationship properties string dynamically, only including keys present in 'item'
         rel_prop_parts = []
         for key in rel_props_keys:
-            # Check if the key is relevant (not the node key) and likely present in item
-            # We assume item structure is consistent based on LLM prompt
             if key != node_key_prop:
-                 # This creates strings like "dosage: item.dosage"
                 rel_prop_parts.append(f"{key}: item.{key}")
 
         rel_props_str = ""
         if rel_prop_parts:
             rel_props_str = " {" + ", ".join(rel_prop_parts) + "}"
 
-        # MERGE the relationship
         cypher_parts.append(f"MERGE (p)-[r:{rel_type}]->(n)")
-        # Set/update properties on the relationship if they exist
         if rel_props_str:
-            # Use apoc.map.clean to avoid setting null properties if APOC plugin is installed
-            # If APOC is not available, use the simpler SET lines but risk setting nulls
-            # cypher_parts.append(f"ON CREATE SET r = {rel_props_str}")
-            # cypher_parts.append(f"ON MATCH SET r += {rel_props_str}")
-            cypher_parts.append(f"ON CREATE SET r = apoc.map.clean({rel_props_str}, [], [null, ''])") # More robust cleaning
+            cypher_parts.append(f"ON CREATE SET r = apoc.map.clean({rel_props_str}, [], [null, ''])") 
             cypher_parts.append(f"ON MATCH SET r += apoc.map.clean({rel_props_str}, [], [null, ''])")
 
-
-    # 2. Add Conditions, Medications, Allergies, Procedures, Symptoms
-    # Note: Ensure node_key_prop matches the property name in the JSON from the LLM
     add_related_nodes(conditions, "Condition", "HAS_CONDITION", "name", ["diagnosisDate"])
     add_related_nodes(medications, "Medication", "TAKES_MEDICATION", "name", ["dosage", "frequency", "startDate"])
-    add_related_nodes(allergies, "Allergy", "HAS_ALLERGY", "allergen", ["reaction"]) # Key is 'allergen'
+    add_related_nodes(allergies, "Allergy", "HAS_ALLERGY", "allergen", ["reaction"]) 
     add_related_nodes(procedures, "Procedure", "UNDERWENT_PROCEDURE", "name", ["procedureDate"])
     add_related_nodes(symptoms, "Symptom", "REPORTS_SYMPTOM", "name", ["reportDate", "severity"])
 
-    # 3. Ensure single patient return using WITH DISTINCT
-    # This is crucial because UNWIND can create multiple rows for the same patient
     cypher_parts.append("WITH DISTINCT p")
 
-    # 4. Return the patient's ID for confirmation
-    cypher_parts.append(f"RETURN p.{id_property} AS patientId") # Use the same ID property used for merging
+    cypher_parts.append(f"RETURN p.{id_property} AS patientId") 
 
     final_cypher = "\n".join(cypher_parts)
 
     return final_cypher, params
-
-# --- Neo4j Execution Logic ---
-
-# Optional: Filter the specific UserWarning from neo4j driver about multiple results if needed
-# warnings.filterwarnings("ignore", message="Expected a result with a single record, but found multiple.")
 
 def execute_neo4j_query(query: str, parameters: dict) -> str | None:
     """
@@ -228,31 +197,25 @@ def execute_neo4j_query(query: str, parameters: dict) -> str | None:
         print("CRITICAL Error: NEO4J_PASSWORD environment variable not set. Cannot connect to Neo4j.")
         return None
 
-    driver = None # Initialize driver variable outside try block
+    driver = None 
     try:
-        # Establish connection using basic authentication
         auth = basic_auth(NEO4J_USERNAME, NEO4J_PASSWORD)
         driver = GraphDatabase.driver(NEO4J_URI, auth=auth)
-        driver.verify_connectivity() # Check if connection details are valid
+        driver.verify_connectivity()
         print(f"Successfully connected to Neo4j at {NEO4J_URI} (database: '{NEO4J_DATABASE}').")
 
-        # Execute the query within a session, targeting the specified database
         with driver.session(database=NEO4J_DATABASE) as session:
             result = session.run(query, parameters)
-            # Use single() to get the unique record expected after 'WITH DISTINCT p'
             record = result.single()
-            # Check if a record was returned and if it contains the 'patientId' field
             if record and "patientId" in record:
                 patient_id_returned = record["patientId"]
                 print(f"Successfully executed query. Patient ID: {patient_id_returned}")
                 return patient_id_returned
             elif record:
                 print(f"Warning: Query executed but did not return the expected 'patientId' key in the record: {record}")
-                return None # Or indicate success without ID if appropriate
+                return None 
             else:
-                # This might happen if the query had an issue before the final RETURN
                 print("Warning: Query executed but returned no records.")
-                # Check summary for potential write activity
                 summary = result.consume()
                 if summary.counters.nodes_created > 0 or summary.counters.relationships_created > 0:
                      print("Note: Database writes may have occurred despite no patientId returned.")
@@ -260,20 +223,14 @@ def execute_neo4j_query(query: str, parameters: dict) -> str | None:
 
 
     except Exception as e:
-        # Handle potential errors (authentication, connection, query syntax, etc.)
         print(f"Error executing Cypher query against Neo4j: {e}")
-        # Optional: Log the failing query and params for debugging (mask sensitive data if necessary)
         # print("Failing Query:\n", query)
         # print("Failing Parameters:\n", json.dumps(parameters, indent=2, default=str))
         return None
     finally:
-        # Ensure the driver connection is always closed
         if driver:
             driver.close()
             # print("Neo4j driver closed.")
-
-
-# --- Main Orchestration Function ---
 
 def send_to_neo4j(prompt: str) -> str | None:
     """
@@ -296,8 +253,6 @@ def send_to_neo4j(prompt: str) -> str | None:
         return None
 
     print("--- Step 1: Extraction Successful ---")
-    # Optional: Print extracted data for debugging
-    # print("\nExtracted Data (JSON):\n", json.dumps(extracted_data, indent=2))
 
     print("\n--- Step 2: Generating Cypher Query ---")
     cypher_result = generate_cypher_query(extracted_data)
@@ -308,10 +263,6 @@ def send_to_neo4j(prompt: str) -> str | None:
 
     cypher_query, params = cypher_result
     print("--- Step 2: Cypher Query Generation Successful ---")
-    # Optional: Print query and params for debugging
-    # print("\nGenerated Cypher Query:\n", cypher_query)
-    # print("\nGenerated Parameters:\n", json.dumps(params, indent=2, default=str))
-
 
     print("\n--- Step 3: Executing Query in Neo4j ---")
     patient_id_result = execute_neo4j_query(cypher_query, params)
@@ -326,18 +277,15 @@ def send_to_neo4j(prompt: str) -> str | None:
 import os
 import json
 import sys
-import re # Import regex for simple normalization check
+import re 
 from openai import OpenAI
 from neo4j import GraphDatabase, basic_auth
-
-# --- IMPROVED Helper Functions ---
 
 def generate_cypher_for_prompt(prompt: str) -> str | None:
     """
     Uses LLM (gpt-4o-mini) to generate a Cypher query from a natural language prompt,
     considering the defined KG schema with improved instructions.
     """
-    # IMPROVED Schema Description - explicitly mentioning relationship properties
     schema_description = """
     Knowledge Graph Schema:
     Nodes:
@@ -356,7 +304,6 @@ def generate_cypher_for_prompt(prompt: str) -> str | None:
     - (Patient)-[r:REPORTS_SYMPTOM {reportDate: String, severity: String}]->(Symptom) # Properties are ON the relationship 'r'
     """
 
-    # IMPROVED System Prompt
     system_prompt = f"""
 You are an expert translator of natural language questions into Neo4j Cypher queries based on the provided schema.
 **CRITICAL INSTRUCTIONS:**
@@ -384,14 +331,12 @@ You are an expert translator of natural language questions into Neo4j Cypher que
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_message}
             ],
-            temperature=0.0, # Keep temperature low for query generation
+            temperature=0.0, 
         )
         cypher_query = response.choices[0].message.content.strip()
 
-        # Clean potential markdown backticks if LLM ignores instruction
         cypher_query = cypher_query.removeprefix("```cypher").removesuffix("```").strip()
 
-        # Stronger Safety Check (redundant with prompt but good practice)
         modification_keywords = [" CREATE ", " MERGE ", " DELETE ", " SET ", " REMOVE "]
         if any(keyword in cypher_query.upper() for keyword in modification_keywords):
             print(f"Error: Generated query contains modification keywords despite instructions: {cypher_query}")
@@ -399,8 +344,6 @@ You are an expert translator of natural language questions into Neo4j Cypher que
 
         if not cypher_query.upper().startswith("MATCH"):
              print(f"Warning: Generated query does not start with MATCH: {cypher_query}")
-             # Allow maybe OPTIONAL MATCH, but generally expect MATCH
-             # Consider returning None if strictness is desired
 
         print(f"Debug: Generated Cypher: {cypher_query}")
         return cypher_query
@@ -411,7 +354,6 @@ You are an expert translator of natural language questions into Neo4j Cypher que
 
 def run_read_query(query: str) -> list[dict] | None:
     """Executes a read-only Cypher query against Neo4j and returns results."""
-    # (This function remains largely the same as before)
     if not NEO4J_PASSWORD:
         print("CRITICAL Error in run_read_query: NEO4J_PASSWORD not set.")
         return None
@@ -420,17 +362,12 @@ def run_read_query(query: str) -> list[dict] | None:
         auth = basic_auth(NEO4J_USERNAME, NEO4J_PASSWORD)
         driver = GraphDatabase.driver(NEO4J_URI, auth=auth)
         driver.verify_connectivity()
-        # print(f"Debug: Neo4j connected for read query (DB: '{NEO4J_DATABASE}').") # Less verbose debug
         with driver.session(database=NEO4J_DATABASE) as session:
             result = session.run(query)
             results_list = [record.data() for record in result]
             print(f"Debug: Query returned {len(results_list)} record(s).")
-            # print(f"Debug: Query results sample: {results_list[:2]}") # Optional: print sample
             return results_list
     except Exception as e:
-        # Catch specific Neo4j errors for better diagnostics if needed
-        # from neo4j.exceptions import ClientError, DatabaseError
-        # if isinstance(e, ClientError) and "SyntaxError" in str(e): ...
         print(f"Error executing read query in Neo4j: {e}")
         print(f"Failing Query: {query}")
         return None
@@ -444,7 +381,7 @@ def generate_final_response(user_prompt: str, query_results: list[dict]) -> str:
     and the data retrieved from the knowledge graph, with improved grounding.
     """
 
-    MAX_RESULT_CHARS = 4000 # Keep truncation
+    MAX_RESULT_CHARS = 4000 
     results_string = json.dumps(query_results, indent=2, default=str)
     if len(results_string) > MAX_RESULT_CHARS:
         results_string = results_string[:MAX_RESULT_CHARS] + "\n... (results truncated)"
@@ -453,7 +390,6 @@ def generate_final_response(user_prompt: str, query_results: list[dict]) -> str:
     if no_results:
         results_string = "[] (No information found in the knowledge graph matching the query)"
 
-    # IMPROVED System Prompt
     system_prompt = """
 You are an AI assistant accessing a hospital knowledge graph. Your task is to synthesize the 'Retrieved Data' to answer the 'Original User Question'.
 **CRITICAL INSTRUCTIONS:**
@@ -511,9 +447,6 @@ def chat_with_kg(prompt: str) -> str:
 
     print("--- Chat Prompt Processing Complete ---")
     return final_response
-
-# print("\n--- Starting Chat Examples (with improved prompts) ---")
-# print(f"Connecting to Neo4j: {NEO4J_URI}, DB: {NEO4J_DATABASE}")
 
 # questions = [
 #     # "What conditions does Johnathan Doe have?", # Expect Hypertension, Diabetes
